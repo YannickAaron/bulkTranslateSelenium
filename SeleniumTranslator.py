@@ -5,9 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from random_user_agent.user_agent import UserAgent
-from random_user_agent.params import SoftwareName, OperatingSystem
-
 from pathlib import Path
 
 from time import sleep
@@ -24,15 +21,6 @@ class SeleniumTranslator:
         self.sourceLang = sourceLang
         self.targetLang = targetLang
 
-        software_names = [SoftwareName.CHROME.value]
-        operating_systems = [OperatingSystem.WINDOWS.value,OperatingSystem.LINUX.value]
-
-        user_agent_rotator = UserAgent(software_names=software_names,operating_systems=operating_systems,limit=100)
-
-        user_agent = user_agent_rotator.get_random_user_agent()
-
-        print("ST uses agent: " +user_agent)
-
         chrome_options = Options()
         chrome_options.add_argument("Cache-Control=no-cache")
         chrome_options.add_argument("--no-sandbox")
@@ -46,7 +34,6 @@ class SeleniumTranslator:
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_argument("window-size=900,1000")
 
-        chrome_options.add_argument(f"user-agent={user_agent}")
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
         chrome_options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -61,6 +48,7 @@ class SeleniumTranslator:
 
 
     def setLanguages(self,soureLang=None,targetLang=None):
+        sleep(5)
         if soureLang != None:
             self.sourceLang = soureLang
         if targetLang != None:
@@ -70,19 +58,21 @@ class SeleniumTranslator:
         targetLanguageBtn = self.driver.find_element_by_xpath("//button[contains(@dl-test,'translator-target-lang-btn')]")
 
         inputLanguageBtn.click()
-        sleep(2)
+        sleep(5)
         self.driver.find_element_by_xpath("//button[contains(@dl-test,'translator-lang-option-"+self.sourceLang+"')]").click()
 
         targetLanguageBtn.click()
-        sleep(2)
+        sleep(5)
         self.driver.find_element_by_xpath("//button[contains(@dl-test,'translator-lang-option-"+self.targetLang+"')]").click()
 
     def translate(self,sourceText):
         sourceInput = self.driver.find_element_by_xpath("//textarea[contains(@dl-test,'translator-source-input')]")
         targetInput = self.driver.find_element_by_xpath("//textarea[contains(@dl-test,'translator-target-input')]")
 
-        self.simulateTyping(sourceInput,sourceText,0.1)
-        sleep(2)
+        self.clearInput(sourceInput)
+
+        self.simulateTyping(sourceInput,sourceText,0.005)
+        sleep(1)
         return targetInput.get_attribute("value")
 
 
@@ -92,10 +82,13 @@ class SeleniumTranslator:
         else:
             return False
 
-    def simulateTyping(self,element,myText,mySpeed=0.3):
+    def simulateTyping(self,element,myText,mySpeed=0.01):
         for char in myText:
             sleep(mySpeed)
             element.send_keys(char)
+
+    def clearInput(self,element):
+        element.clear()
 
     def exit(self):
         self.driver.quit()
