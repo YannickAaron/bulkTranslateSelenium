@@ -1,2 +1,2 @@
 # bulkTranslateSelenium
- bulk translation tool using selenium and Deepl
+Quick project to automate translation using selenium and DeepL
